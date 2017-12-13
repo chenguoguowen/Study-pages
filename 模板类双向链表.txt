@@ -1,0 +1,230 @@
+双向链表：
+    为达到一个保序的状态，并且删除和添加都比较方便的一个状态，将数据设计为一个双向链表。
+
+下面代码设计了一个双向链表节点的模板类，并且实现了该链表的节点的获取父节点和子节点的函数以及获取当前节点所保存的数据的函数：
+
+#pragma once
+
+template <typename T> class TwoWayLinkedListHead;
+
+template <typename T>
+class TwoWayLinkedListNode
+{
+    friend TwoWayLinkedListHead<T>;
+
+public:
+    TwoWayLinkedListNode(T *pstData);
+    ~TwoWayLinkedListNode(void);
+
+    TwoWayLinkedListNode<T> *GetNextNode();
+    TwoWayLinkedListNode<T> *GetPreNode();
+
+    T *GetData(); 
+
+private:
+    TwoWayLinkedListNode<T> *m_pPreNode;
+    TwoWayLinkedListNode<T> *m_pNextNode;
+    T m_stData;
+};
+
+template <typename T>
+TwoWayLinkedListNode<T>::TwoWayLinkedListNode(T *pstData)
+{    
+    m_pPreNode = NULL;
+    m_pNextNode = NULL;
+
+    if (NULL != pstData)
+    {
+        m_stData = *pstData;
+    }
+
+    return;
+}
+
+template <typename T>
+TwoWayLinkedListNode<T>::~TwoWayLinkedListNode(void)
+{
+
+}
+
+template <typename T>
+TwoWayLinkedListNode<T> * TwoWayLinkedListNode<T>::GetPreNode()
+{
+    return m_pPreNode;
+}
+
+template <typename T>
+TwoWayLinkedListNode<T> * TwoWayLinkedListNode<T>::GetNextNode()
+{
+    return m_pNextNode;
+}
+
+
+template <typename T>
+T * TwoWayLinkedListNode<T>::GetData()
+{
+    return &m_stData;
+}
+
+
+以下代码是设计了该双向链表的头结点的模板类，包含了以下功能和函数：
+1、记录当前链表的节点数；
+2、记录当前链表的起始节点和尾节点；
+3、获取当前节点数、起始节点和尾节点的函数；
+4、对当前链表进行末尾插入的函数；
+5、对当前链表进行任意节点删除的函数。
+
+template <typename T>
+class TwoWayLinkedListHead
+{
+public:
+    TwoWayLinkedListHead(void);
+    ~TwoWayLinkedListHead(void);
+
+    TwoWayLinkedListNode<T> *PushBack(T *pstData);
+    void RemoveNode(TwoWayLinkedListNode<T> *pNode);
+
+    TwoWayLinkedListNode<T> *GetFrontNode();
+    TwoWayLinkedListNode<T> *GetTailNode();
+
+    int GetCount();
+
+private:
+    TwoWayLinkedListNode<T> *m_pFront;
+    TwoWayLinkedListNode<T> *m_pTail;
+    int m_nCount;
+};
+
+template <typename T>
+int TwoWayLinkedListHead<T>::GetCount()
+{
+    return m_nCount;
+}
+
+template <typename T>
+TwoWayLinkedListHead<T>::TwoWayLinkedListHead(void)
+{
+    m_nCount = 0;
+    m_pFront = NULL;
+    m_pTail = NULL;
+}
+
+template <typename T>
+TwoWayLinkedListHead<T>::~TwoWayLinkedListHead(void)
+{
+    while (m_nCount > 0)
+    {
+        RemoveNode(m_pFront);
+    }
+}
+
+template <typename T>
+TwoWayLinkedListNode<T> *TwoWayLinkedListHead<T>::PushBack(T *pstData)
+{
+    TwoWayLinkedListNode<T> *pNode = new TwoWayLinkedListNode<T>(pstData);
+    if (m_pFront == NULL)
+    {
+        // 第一个节点
+        m_pFront = pNode;
+        m_pTail = pNode;
+        pNode->m_pPreNode = NULL;
+        pNode->m_pNextNode = NULL;
+    }
+    else
+    {
+        // 不是第一个节点
+        pNode->m_pPreNode = m_pTail;
+        pNode->m_pNextNode = NULL;
+        m_pTail->m_pNextNode = pNode;
+        m_pTail = pNode;
+    }
+
+    ++m_nCount;
+    return pNode;
+}
+
+template <typename T>
+void TwoWayLinkedListHead<T>::RemoveNode(TwoWayLinkedListNode<T> *pNode)
+{
+    if (NULL == pNode)
+    {
+        return;
+    }
+
+    if (pNode->m_pPreNode == NULL)
+    {
+        // 删除第一个节点
+        m_pFront = pNode->m_pNextNode;
+        if (NULL != m_pFront)
+        {
+            m_pFront->m_pPreNode = NULL;
+        }
+        else
+        {
+            // 所有数据均删除
+            m_pTail = NULL;
+        }
+    }
+    else if (pNode->m_pNextNode == NULL)
+    {
+        // 删除最后一个节点
+        m_pTail = pNode->m_pPreNode;
+        if (NULL != m_pTail)
+        {
+            m_pTail->m_pNextNode = NULL;
+        }
+        else
+        {
+            // 所有数据均删除
+            m_pFront = NULL;
+        }
+    }
+    else
+    {
+        pNode->m_pPreNode->m_pNextNode = pNode->m_pNextNode;
+        pNode->m_pNextNode->m_pPreNode = pNode->m_pPreNode;
+    }
+
+    --m_nCount;
+    delete pNode;
+    return;
+}
+
+template <typename T>
+TwoWayLinkedListNode<T> * TwoWayLinkedListHead<T>::GetTailNode()
+{
+    return m_pTail;
+}
+
+template <typename T>
+TwoWayLinkedListNode<T> * TwoWayLinkedListHead<T>::GetFrontNode()
+{
+    return m_pFront;
+}
+
+链表中当然也可以进行任一节点的插入操作，但是任一节点的插入需要进行位置查找，效率相对较慢。
+template <typename T>
+TwoWayLinkedListNode<T> *TwoWayLinkedListHead<T>::InsertToList(T *pstData，T *InsterData)
+{
+    TwoWayLinkedListNode<T> *pNode = new TwoWayLinkedListNode<T>(pstData);
+    TwoWayLinkedListNode<T> *InsterNode = new TwoWayLinkedListNode<T>(InsterData);
+
+    if (m_pFront == NULL)
+    {
+        // 第一个节点
+        m_pFront = InsterNode;
+        m_pTail = InsterNode;
+        InsterNode->m_pPreNode = NULL;
+        InsterNode->m_pNextNode = NULL;
+    }
+    else
+    {
+        // 不是第一个节点
+        InsterNode->m_pPreNode = pstData;
+        InsterNode->m_pNextNode = pstData->m_pNextNode;
+        pstData->m_pNextNode = InsterNode;
+    }
+
+    ++m_nCount;
+    return pNode;
+}
